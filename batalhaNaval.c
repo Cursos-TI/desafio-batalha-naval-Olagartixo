@@ -1,45 +1,85 @@
 #include <stdio.h>
 
-int main() {
-    
-    const int TAM_TABULEIRO = 10; // Tamanho fixo 10x10
-    const int TAM_NAVIO = 3;      // Cada navio ocupa 3 posições
-    int tabuleiro[10][10];        // Matriz 10x10 representando o tabuleiro
+#define TAM_TABULEIRO 10
+#define TAM_NAVIO 3
 
-    // ==============================
-    // Inicializar o tabuleiro com 0 (água)
-    // ==============================
+// Função auxiliar para verificar se é possível posicionar um navio
+// (não sai dos limites e não se sobrepõe a outro)
+int podePosicionar(int tabuleiro[TAM_TABULEIRO][TAM_TABULEIRO], 
+                   int linha, int coluna, 
+                   int orientacao, int diagonal) {
+    // orientacao: 0 = horizontal, 1 = vertical
+    // diagonal: 0 = não diagonal, 1 = diagonal principal, -1 = diagonal secundária
+
+    for (int k = 0; k < TAM_NAVIO; k++) {
+        int i = linha, j = coluna;
+
+        if (diagonal == 0) {
+            if (orientacao == 0) j += k;       // horizontal
+            else i += k;                       // vertical
+        } else if (diagonal == 1) {            // diagonal principal (\)
+            i += k; j += k;
+        } else if (diagonal == -1) {           // diagonal secundária (/)
+            i += k; j -= k;
+        }
+
+        // Verifica limites
+        if (i < 0 || i >= TAM_TABULEIRO || j < 0 || j >= TAM_TABULEIRO) 
+            return 0;
+
+        // Verifica sobreposição
+        if (tabuleiro[i][j] == 3) return 0;
+    }
+
+    return 1;
+}
+
+// Função para posicionar efetivamente o navio (assumindo que já foi validado)
+void posicionarNavio(int tabuleiro[TAM_TABULEIRO][TAM_TABULEIRO], 
+                     int linha, int coluna, 
+                     int orientacao, int diagonal) {
+    for (int k = 0; k < TAM_NAVIO; k++) {
+        int i = linha, j = coluna;
+
+        if (diagonal == 0) {
+            if (orientacao == 0) j += k;       // horizontal
+            else i += k;                       // vertical
+        } else if (diagonal == 1) {            // diagonal principal (\)
+            i += k; j += k;
+        } else if (diagonal == -1) {           // diagonal secundária (/)
+            i += k; j -= k;
+        }
+
+        tabuleiro[i][j] = 3;
+    }
+}
+
+int main() {
+    int tabuleiro[TAM_TABULEIRO][TAM_TABULEIRO];
+
+    // Inicializa o tabuleiro com 0 (água)
     for (int i = 0; i < TAM_TABULEIRO; i++) {
         for (int j = 0; j < TAM_TABULEIRO; j++) {
-            tabuleiro[i][j] = 0; // 0 = água
+            tabuleiro[i][j] = 0;
         }
     }
 
-    // ==============================
-    // Coordenadas iniciais dos navios
-    // ==============================
-    int linhaNavioHorizontal = 2; // Linha do navio horizontal
-    int colunaNavioHorizontal = 4; // Coluna inicial
-    int linhaNavioVertical = 5;   // Linha inicial do navio vertical
-    int colunaNavioVertical = 7;  // Coluna fixa do navio vertical
+    // ---- Posicionamento de navios ----
+    // Dois normais (horizontal e vertical)
+    if (podePosicionar(tabuleiro, 2, 4, 0, 0))
+        posicionarNavio(tabuleiro, 2, 4, 0, 0); // horizontal em (2,4)
 
-    // ==============================
-    // Posicionar Navio Horizontal
-    // ==============================
-    for (int j = 0; j < TAM_NAVIO; j++) {
-        tabuleiro[linhaNavioHorizontal][colunaNavioHorizontal + j] = 3;
-    }
+    if (podePosicionar(tabuleiro, 5, 7, 1, 0))
+        posicionarNavio(tabuleiro, 5, 7, 1, 0); // vertical em (5,7)
 
-    // ==============================
-    // Posicionar Navio Vertical
-    // ==============================
-    for (int i = 0; i < TAM_NAVIO; i++) {
-        tabuleiro[linhaNavioVertical + i][colunaNavioVertical] = 3;
-    }
+    // Dois diagonais
+    if (podePosicionar(tabuleiro, 0, 0, 0, 1))
+        posicionarNavio(tabuleiro, 0, 0, 0, 1); // diagonal principal (\) em (0,0)
 
-    // ==============================
-    // Exibir Tabuleiro
-    // ==============================
+    if (podePosicionar(tabuleiro, 0, 9, 0, -1))
+        posicionarNavio(tabuleiro, 0, 9, 0, -1); // diagonal secundária (/) em (0,9)
+
+    // ---- Impressão do tabuleiro ----
     printf("Tabuleiro de Batalha Naval (0 = agua, 3 = navio):\n\n");
     for (int i = 0; i < TAM_TABULEIRO; i++) {
         for (int j = 0; j < TAM_TABULEIRO; j++) {
